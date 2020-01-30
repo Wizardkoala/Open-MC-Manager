@@ -77,8 +77,8 @@ def Build():
     open('Servers\\'+Name+'\\server.jar', 'wb').write(download.content)
 
     #Writes the run.bat file to start the server
-    MaxRam = str(int(easygui.enterbox("How much ram do you want to dedicate?")))
-    line = "echo off\ncls\ncd Servers\\"+Name+"\njava -Xmx"+MaxRam+"M -Xms1024M -jar server.jar nogui\nexit"
+    MaxRam = str(int(easygui.enterbox("How many gigabytes of ram do you want to dedicate?")))
+    line = "echo off\ncls\ncd Servers\\"+Name+"\njava -Xmx"+MaxRam+"G -Xms1G -jar server.jar nogui\nexit"
     file = open("Servers\\"+Name+"\\Run.bat", 'w')
     file.write(line)
     file.close()
