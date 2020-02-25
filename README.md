@@ -1,9 +1,23 @@
 # Open-MC-Manager
 A Open source server manager for Minecraft.
 
-Currently you have to have python 3.8 installed aswell as all the required libraries as listed
+Currently you have to have python 3.8 installed as well as all the required libraries as listed
 -pickle
 -shutil
 -easygui
 -errno
 -stat
+
+Latest patch notes:
+| Added rename function
+| Added debug mode (Currently only allows you to edit names.)
+   *Make a file with called "debug.txt" with "AllowNameEdits" to enable a pre-boot menu*
+| Added import functionality to bring in old servers to Open MC Manager
+/ Reworked menus to make it more user-friendly
+- Fixed bug that crashed when trying to close the app when building a server
+- Fixed bug when making a server with a space in the name
+
+Things coming soon:
+~ Loading menu when downloading jar files
+~ Download to a exe version so you don't have download libraries
+~ Export Button
