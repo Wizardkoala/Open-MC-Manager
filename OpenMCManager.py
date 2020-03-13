@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # Made by Benjamin Hamilton | 2020
-# For questions and concerns please email Wizardkoala31@gmail.com
+# If you have questions and concerns please email Wizardkoala31@gmail.com
 
-### THIS IS IN ALPHA !!! ###
-import os, pickle, shutil, easygui
+print("To download a executable version go to LINK")
+
+import shutil
+from easygui import msgbox, diropenbox, enterbox, choicebox, ynbox, buttonbox
+from os import system, rmdir, remove, chmod, path
+from pickle import load, dump
 from time import sleep
 
 #Ovoids idiots
@@ -16,7 +20,7 @@ debug = False
 #Load the list of known built servers
 def LoadNames():
     file = open("Servers.list", 'rb')
-    Names = pickle.load(file)
+    Names = load(file)
     file.close()
     return Names
 
@@ -24,8 +28,8 @@ def LoadNames():
 def handleRemoveReadonly(func, path, exc):
   import errno, stat
   excvalue = exc[1]
-  if func in (os.rmdir, os.remove) and excvalue.errno == errno.EACCES:
-      os.chmod(path, stat.S_IRWXU| stat.S_IRWXG| stat.S_IRWXO) # 0777
+  if func in (rmdir, remove) and excvalue.errno == errno.EACCES:
+      chmod(path, stat.S_IRWXU| stat.S_IRWXG| stat.S_IRWXO) # 0777
       func(path)
   else:
       raise
@@ -38,7 +42,7 @@ def AddName(Name):
     Names.append(Name)
 
     file = open("Servers.list", 'wb')
-    pickle.dump(Names, file)
+    dump(Names, file)
     file.close()
 
 #Creates a new server
@@ -47,47 +51,55 @@ def Build():
     import requests
     print("If you have problems try installing a JRE before useing")
     #Creates Dir and adds to Name list
-    Name = easygui.enterbox("Name the server!")
+    Name = enterbox("Name the server!")
     Name = Name.replace(" ", "_")
-    os.system("md Servers\\"+Name+"\\")
+    system("md Servers\\"+Name+"\\")
     AddName(Name)
 
     #Loads the versions in names format eg. 1.15.2
     file = open("VersionsName.pkl", 'rb')
-    VersionsName = pickle.load(file)
+    VersionsName = load(file)
     file.close()
 
     #Loads versions in link format eg.
     #https://launcher.mojang.com/v1/objects/952438ac4e01b4d115c5fc38f891710c4941df29/server.jar
     file = open("VersionsLink.pkl", 'rb')
-    VersionsLink = pickle.load(file)
+    VersionsLink = load(file)
     file.close()
 
 
     #Asks what versions you want
-    Version = str(easygui.choicebox("Which Version do you want?", 'Open MC Manager', VersionsName))
+    Version = str(choicebox("Which Version do you want?", 'Open MC Manager', VersionsName))
 
     #Finds the link to the verisons you picked
     url = VersionsLink[VersionsName.index(Version)]
 
-    #Downloads the jar file
-    easygui.msgbox("This window will close and the jar file and download in the background, please wait! ", 'Open MC Manager')
-    print("Downloading...")
-    download = requests.get(url, allow_redirects=True)
-    open('Servers\\'+Name+'\\server.jar', 'wb').write(download.content)
+    #Downloads the jar file in Downloadjar.py
+    open("jardownload.download", 'w').write(f"{url}\n{Name}")
+    system("start Downloadjar.py")
+
 
     #Writes the run.bat file to start the server
-    MaxRam = str(int(easygui.enterbox("How many gigabytes of ram do you want to dedicate?")))
+    MaxRam = str(int(enterbox("How many gigabytes of ram do you want to dedicate?")))
     line = "echo off\ncls\ncd Servers\\"+Name+"\njava -Xmx"+MaxRam+"G -Xms1G -jar server.jar nogui\nexit"
     file = open("Servers\\"+Name+"\\Run.bat", 'w')
     file.write(line)
     file.close()
 
     #Preforms first time startup to generate needed ELUA and properties files
-    os.system("start Servers\\"+Name+"\\Run.bat /MIN")
+    while True:
+        try:
+            file = open("Servers\\"+Name+"\\server.jar")
+            system("start Servers\\"+Name+"\\Run.bat /MIN")
+            break
+        except FileNotFoundError:
+            sleep(1)
+
+
+
 
     sleep(3)
-    EULA = str(easygui.ynbox("By inputing TRUE you are indicating your agreement to Mojang's EULA (https://account.mojang.com/documents/minecraft_eula)."))
+    EULA = str(ynbox("By inputing TRUE you are indicating your agreement to Mojang's EULA (https://account.mojang.com/documents/minecraft_eula)."))
 
     #Corrects ELUA file
     if EULA.lower() == "true":
@@ -102,11 +114,11 @@ def RemoveName(Name):
     Names.remove(Name)
 
     file = open("Servers.list", 'wb')
-    pickle.dump(Names, file)
+    dump(Names, file)
     file.close()
 
 def Remove(Name):
-    Confirm = easygui.ynbox("Are you sure you want to remove: "+Name, 'Open Mc Manager')
+    Confirm = ynbox("Are you sure you want to remove: "+Name, 'Open Mc Manager')
     if Confirm:
         try:
             shutil.rmtree("Servers\\"+Name, ignore_errors=False, onerror=handleRemoveReadonly)
@@ -117,43 +129,43 @@ def Remove(Name):
             Names.remove(Name)
 
             file = open("Servers.list", 'wb')
-            pickle.dump(Names, file)
+            dump(Names, file)
             file.close()
-        easygui.msgbox("Server Deleted!")
+        msgbox("Server Deleted!")
     else:
-        easygui.msgbox("Aborted!")
+        msgbox("Aborted!")
 
 
 #Open the dir of Name for changes that cant be made in the manager
 def Openfiles(Name):
-    os.system("start Servers\\"+Name+"")
+    system("start Servers\\"+Name+"")
 
 #Starts Name
 def Start(Name):
-    easygui.msgbox("Type stop to shutdown the server.", "Open MC Manager")
+    msgbox("Type stop to shutdown the server.", "Open MC Manager")
     #Starts server
-    os.system("start Servers\\"+Name+"\\Run.bat")
+    system("start Servers\\"+Name+"\\Run.bat")
 
 def Import():
     #Askes for the path of the server to import
-    Path = easygui.diropenbox("Open MC Manager")
-    Name = os.path.basename(os.path.normpath(Path))
+    Path = diropenbox("Open MC Manager")
+    Name = path.basename(path.normpath(Path))
 
     Name = Name.replace(" ", "_")
-    os.system("move "+Path+" Servers\\")
-    os.system("ren \"Servers\\"+Name+"\" "+Name.replace(" ", "_"))
+    system("move "+Path+" Servers\\")
+    system("ren \"Servers\\"+Name+"\" "+Name.replace(" ", "_"))
 
-    MaxRam = str(int(easygui.enterbox("How many gigabytes of ram do you want to dedicate?")))
+    MaxRam = str(int(enterbox("How many gigabytes of ram do you want to dedicate?")))
     data = "echo off\ncls\ncd Servers\\"+Name+"\njava -Xmx"+MaxRam+"G -Xms1G -jar server.jar nogui\nexit"
     open("Servers\\"+Name+"\\Run.bat", 'w').write(data)
 
     AddName(Name)
-    easygui.msgbox("Server Imported!", "Open MC Manager")
+    msgbox("Server Imported!", "Open MC Manager")
 
 def Rename(Name):
-    NewName = easygui.enterbox("What do you want the new name to be?", "Open MC Manager").replace(" ", "_")
+    NewName = enterbox("What do you want the new name to be?", "Open MC Manager").replace(" ", "_")
 
-    os.system("ren Servers\\"+Name+" "+NewName)
+    system("ren Servers\\"+Name+" "+NewName)
     print("Renamed: "+Name+" To "+NewName)
 
     base = open("Servers\\"+NewName+"\\Run.bat", 'r').readlines()
@@ -162,9 +174,13 @@ def Rename(Name):
         Data += line.replace(Name, NewName)
     open("Servers\\"+NewName+"\\Run.bat", 'w').write(Data)
 
-
     RemoveName(Name)
     AddName(NewName)
+
+def Export(Name):
+    path = diropenbox("Where do you want to export to?")
+    system(f"move Servers\\{Name} {path}\\{Name}")
+    RemoveName(Name)
 
 try:
     debugSet = open("debug.txt", 'r').readlines()
@@ -178,17 +194,17 @@ except:
 try:
     LoadNames()
 except:
-    easygui.msgbox("This project is not made by nor affiliated with mojang!")
-    easygui.msgbox("You need java to be installed to use this!\nIf you have trouble try installing a JRE.", "Open MC Manager")
+    msgbox("This project is not made by nor affiliated with mojang!")
+    msgbox("You need java to be installed to use this!\nIf you have trouble try installing a JRE.", "Open MC Manager")
     file = open("Servers.list", 'wb')
-    pickle.dump([], file)
+    dump([], file)
     file.close()
 
 if debug:
     if NameEdits:
         Names = LoadNames()
-        cho = easygui.buttonbox("Debug mode is not stable!", "Open MC Manager: DEBUG", ["Add", "Delete"])
-        name = easygui.enterbox("", "Open MC Manager: DEBUG", Names)
+        cho = buttonbox("Debug mode is not stable!", "Open MC Manager: DEBUG", ["Add", "Delete"])
+        name = enterbox("", "Open MC Manager: DEBUG", Names)
         if cho == "Delete":
             RemoveName(name)
         elif cho == "Add":
@@ -196,7 +212,7 @@ if debug:
         else:
             print("Failed")
     else:
-        easygui.msgbox("No debug options selected!", "Open MC Manager: DEBUG")
+        msgbox("No debug options selected!", "Open MC Manager: DEBUG")
 
 
 while Menu:
@@ -208,7 +224,7 @@ while Menu:
     #Gives a list of options
     message = "Welcome to Open MC Manager!\nIf you are thinking, This GUI is crap... You're right. I'm not too good with GUIs, but if you are feel free to contribute on git hub or emailing Wizardkoala31@gmail.com.\nYou can also send a email with any questions or suggestions, or to just chat."
     NamesRemoved.append("Create");NamesRemoved.append("Import")
-    c = str(easygui.buttonbox(message,"Open MC Manager", NamesRemoved))
+    c = str(buttonbox(message,"Open MC Manager", NamesRemoved))
     c = c.replace(" ", "_")
 
     if c == "Create":
@@ -218,7 +234,7 @@ while Menu:
 
     elif c in Names:
         Name = c
-        c = str(easygui.buttonbox("What do you want to do with "+Name.replace("_", " ")+"?", "Open MC Manager", ["Start", "Rename", "Openfiles", "Remove", "Back"]))
+        c = str(buttonbox("What do you want to do with "+Name.replace("_", " ")+"?", "Open MC Manager", ["Start", "Rename", "Openfiles", "Remove", "Export", "Back"]))
         if c == "Start":
             Start(Name)
             break
@@ -228,15 +244,18 @@ while Menu:
             Remove(Name)
         elif c == "Openfiles":
             Openfiles(Name)
+        elif c == "Export":
+            Export(Name)
+            break
         elif c == "Back":
-            BeLazy = True
+            pass
         elif c == "None":
             break
         else:
-            easygui.msgbox("Something went wrong!", "Open MC Manager: ERROR 1")
+            msgbox("Something went wrong!", "Open MC Manager: ERROR 1")
 
     elif c == "None":
         break
 
     else:
-        easygui.msgbox("Something went wrong!", "Open MC Manager: ERROR 0")
+        msgbox("Something went wrong!", "Open MC Manager: ERROR 0")
