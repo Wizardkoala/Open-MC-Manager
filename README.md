@@ -8,7 +8,7 @@ Currently you have to have python 3.8 installed as well as all the required libr
 -errno
 -stat
 
-#Latest patch notes:
+# Latest patch notes:
 \+ Added loading menu when downloading jar files
   *Not very pleasing to eye right now and needs to me improved*
 \+ Add export button
@@ -21,7 +21,7 @@ Things coming soon:
   \~ Mac/Linux version (Probably not coming for a while.)
   \~ Option to keep the manager open after starting a server
 
-#Previous Path notes:
+# Previous Path notes:
   \+ Added rename function
   \+ Added debug mode (Currently only allows you to edit names.)
       *Make a file with called "debug.txt" with "AllowNameEdits" to enable a pre-boot menu*
